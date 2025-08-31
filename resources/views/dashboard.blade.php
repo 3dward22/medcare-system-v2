@@ -25,10 +25,12 @@
                     <td>{{ $user->role }}</td>
                     <td>
                         <a href="#" class="btn btn-warning btn-sm">Edit</a>
-                        <form action="{{ route('admin.users.delete', $user->id) }}" method="POST" style="display:inline;">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
+                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display:inline;">
+    @csrf 
+    @method('DELETE')
+    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+</form>
+
                     </td>
                 </tr>
             @endforeach
