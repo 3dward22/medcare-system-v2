@@ -13,12 +13,17 @@ class AppointmentController extends Controller
     {
         $this->middleware('auth');
     }
+    public function indexForNurse()
+{
+    $appointments = Appointment::latest()->paginate(10); // adjust query as needed
+    return view('nurse.appointments.index', compact('appointments'));
+}
 
     // Show all appointments for logged-in student
     public function index()
     {
         $appointments = Appointment::where('user_id', Auth::id())->get();
-        return view('appointments.index', compact('appointments'));
+         return view('students.appointments.index', compact('appointments'));
     }
 
     // Show a single appointment
@@ -46,7 +51,7 @@ class AppointmentController extends Controller
             'time' => $request->time,
         ]);
 
-        return redirect()->route('appointments.index')
-                         ->with('success', 'Appointment created successfully.');
+        return redirect()->route('student.appointments.index')
+                 ->with('success', 'Appointment created successfully.');
     }
 }

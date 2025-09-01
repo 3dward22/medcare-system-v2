@@ -1,13 +1,14 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ChatController;
-use App\Http\Controllers\AdminController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,11 +16,9 @@ use App\Http\Controllers\NotificationController;
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
-    // Login
-    Route::get('login', fn () => view('auth.login'))->name('login');
+    Route::get('login', fn() => view('auth.login'))->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
-    
-    // Registration
+
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('register', [RegisteredUserController::class, 'store']);
 });
@@ -30,6 +29,7 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+
     // Logout
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
@@ -39,58 +39,82 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:admin')->group(function () {
-        Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
 
+        // Dashboard
+        Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+
+        // User management
         Route::get('admin/users', [AdminController::class, 'index'])->name('admin.users.index');
+        
+        Route::get('/admin/medicines', [MedicineController::class, 'adminIndex'])->name('admin.medicines.index');
+
         Route::delete('admin/users/{user}', [AdminController::class, 'destroy'])->name('admin.users.destroy');
+
+        // Medicines CRUD
+        Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
+        Route::get('/medicines/create', [MedicineController::class, 'create'])->name('medicines.create');
+        Route::post('/medicines', [MedicineController::class, 'store'])->name('medicines.store');
+        Route::get('/medicines/{medicine}', [MedicineController::class, 'show'])->name('medicines.show');
+        Route::put('/medicines/{medicine}', [MedicineController::class, 'update'])->name('medicines.update');
+        Route::delete('/medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Nurse Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:nurse')->group(function () {
-    // Nurse Dashboard
-    Route::get('/nurse/dashboard', fn () => view('nurse.dashboard'))->name('nurse.dashboard');
+    // Nurse routes
+    Route::prefix('nurse')->name('nurse.')->middleware('role:nurse')->group(function () {
+    Route::get('/dashboard', fn() => view('nurse.dashboard'))->name('dashboard');
 
-    // Medicines CRUD
+    // Medicines
     Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
-    Route::get('/medicines/create', [MedicineController::class, 'create'])->name('medicines.create');
-    Route::post('/medicines', [MedicineController::class, 'store'])->name('medicines.store');
-    Route::get('/medicines/{medicine}', [MedicineController::class, 'show'])->name('medicines.show');
-    Route::put('/medicines/{medicine}', [MedicineController::class, 'update'])->name('medicines.update');
-    Route::delete('/medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
-            //add more routes for notififs ,chat , student records and appointments
-    // Optional: Appointments management if nurses handle them
-    Route::resource('appointments', AppointmentController::class)
-        ->only(['index', 'show', 'update']); // adjust as needed
-});
     
-    /*
-    |--------------------------------------------------------------------------
-    | Student Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:student')->group(function () {
-        // Student Dashboard
-        Route::get('/student/dashboard', fn () => view('students.dashboard'))->name('student.dashboard');
+    // Student Records
+    Route::get('/students', [AdminController::class, 'studentRecords'])->name('students.index');
 
-        // Appointments
-        Route::resource('appointments', AppointmentController::class)->only(['index', 'show', 'store']);
+    // Appointments
+    Route::get('appointments', [AppointmentController::class, 'indexForNurse'])
+        ->name('appointments.index');
 
-        // Chat
-        Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
-        Route::post('chat', [ChatController::class, 'store'])->name('chat.store');
+    Route::post('appointments', [AppointmentController::class, 'store'])
+        ->name('appointments.store');
 
-        // Notifications
-        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    // Nurse ↔ Student chat
+    Route::get('chat/students', [ChatController::class, 'listStudents'])->name('chat.students');
+    Route::get('chat/student/{student}', [ChatController::class, 'indexWithStudent'])->name('chat.with_student');
+    Route::post('chat/student/{student}', [ChatController::class, 'sendMessage'])->name('chat.send_message');
+    
+    // Fetch new messages with a specific student (AJAX)
+    Route::get('chat/fetch/{student}', [ChatController::class, 'fetchMessages'])->name('nurse.chat.fetch');
 
-        // Medicines (read-only for students)
-        Route::get('student/medicines', [MedicineController::class, 'studentIndex'])->name('student.medicine');
+// Notifications
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+});
 
+    // Student routes
+    Route::prefix('student')->middleware('role:student')->group(function () {
+    Route::get('/dashboard', fn() => view('students.dashboard'))->name('student.dashboard');
 
-    });
+    // Appointments
+    Route::resource('appointments', AppointmentController::class)
+        ->only(['index', 'show', 'store'])
+        ->names([
+            'index' => 'student.appointments.index',
+            'show' => 'student.appointments.show',
+            'store' => 'student.appointments.store',
+        ]);
+
+    // Chat
+    Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('chat', [ChatController::class, 'store'])->name('chat.store');
+    
+    // Fetch new messages for student
+    Route::get('chat/fetch/{student}', [ChatController::class, 'fetchMessages'])->name('student.chat.fetch');
+
+    // Notifications
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+
+    // Medicines read-only
+    Route::get('medicines', [MedicineController::class, 'studentIndex'])->name('student.medicine');
+});
+
 });
 
 /*
@@ -98,4 +122,15 @@ Route::middleware('auth')->group(function () {
 | Default Route
 |--------------------------------------------------------------------------
 */
-Route::get('/', fn () => redirect()->route('login'));
+Route::get('/', function () {
+    if (Auth::check()) {
+        $role = strtolower(Auth::user()->role);
+        return match ($role) {
+            'admin' => redirect()->route('dashboard'),
+            'nurse' => redirect()->route('nurse.dashboard'),
+            'student' => redirect()->route('student.dashboard'),
+            default => redirect()->route('login'),
+        };
+    }
+    return redirect()->route('login');
+});

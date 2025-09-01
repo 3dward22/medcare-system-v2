@@ -10,6 +10,11 @@ class MedicineController extends Controller
     /**
      * Show medicines for Admin/Nurse (with CRUD).
      */
+    public function adminIndex()
+{
+    $medicines = Medicine::latest()->paginate(10);
+    return view('admin.medicines.index', compact('medicines'));
+}
     public function index()
     {
         $medicines = Medicine::latest()->paginate(10);

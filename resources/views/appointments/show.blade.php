@@ -13,6 +13,6 @@
         </div>
     </div>
 
-    <a href="{{ route('appointments.index') }}" class="btn btn-secondary mt-3">Back to Appointments</a>
+    <a href="{{ route('student.appointments.index') }}" class="btn btn-secondary mt-3">Back to Appointments</a>
 </div>
 @endsection

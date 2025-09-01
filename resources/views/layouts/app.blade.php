@@ -17,7 +17,7 @@
 </head>
 <body>
 @php
-    $userRole = auth()->user()->role ?? null;
+    $userRole = strtolower(auth()->user()->role ?? '');
 
     $dashboardRoute = match($userRole) {
         'admin'   => route('dashboard'),
@@ -27,55 +27,60 @@
     };
 
     $medicinesRoute = match($userRole) {
-        'admin', 'nurse' => route('medicines.index'),
-        'student'        => route('student.medicine'), // make sure this route exists
-        default          => '#',
+        'admin' => route('admin.medicines.index'),
+        'nurse' => route('medicines.index'),
+        'student' => route('student.medicine'),
+        default => null, // safer than '#'
+    };
+
+    $appointmentsRoute = match($userRole) {
+        'nurse'   => route('nurse.appointments.index'),
+        'student' => route('student.appointments.index'),
+        default   => null,
     };
 @endphp
 
-{{-- Navigation Bar --}}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        {{-- Brand --}}
-        <a class="navbar-brand" href="{{ $dashboardRoute }}">
-            Medcare
-        </a>
-
-        {{-- Toggler --}}
+        <a class="navbar-brand" href="{{ $dashboardRoute }}">Medcare</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        {{-- Links --}}
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                @auth
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ $dashboardRoute }}">Dashboard</a>
-                    </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ $dashboardRoute }}">Dashboard</a>
+                </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ $medicinesRoute }}">Medicines</a>
-                    </li>
+                @if(auth()->user()->role === 'nurse')
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('nurse.medicines.index') }}">Medicines</a>
+    </li>
+@elseif(auth()->user()->role === 'admin')
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('admin.medicines.index') }}">Medicines</a>
+    </li>
+@endif
 
-                    <li class="nav-item">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="btn btn-link nav-link">Logout</button>
-                        </form>
-                    </li>
-                @else
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('register') }}">Register</a>
-                    </li>
-                @endauth
+                @if($appointmentsRoute)
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ $appointmentsRoute }}">Appointments</a>
+                </li>
+                @endif
+
+                <li class="nav-item">
+                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-link nav-link p-0">Logout</button>
+                    </form>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
+
+
 
 {{-- Main Content --}}
 <main class="py-4 container">

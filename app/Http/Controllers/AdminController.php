@@ -15,6 +15,18 @@ class AdminController extends Controller
         return view('admin.index', compact('users'));
     }
 
+
+
+
+    // Show student records (only nurse can access via routes)
+    public function studentRecords()
+{
+    // Only fetch users with the role 'student'
+    $students = User::where('role', 'student')->get();
+
+    return view('nurse.students.index', compact('students'));
+}
+
     // Delete a user
     public function destroy(User $user)
     {

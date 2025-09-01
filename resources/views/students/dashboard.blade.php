@@ -40,7 +40,7 @@
                     <p class="card-text text-muted mb-4">
                         Schedule, view, and manage all your upcoming health appointments with ease.
                     </p>
-                    <a href="{{ route('appointments.index') }}" 
+                    <a href="{{ route('student.appointments.index') }}" 
                        class="btn btn-primary btn-lg px-4 rounded-pill shadow-sm">
                         <i class="fas fa-arrow-right me-2"></i>
                         Manage Appointments
