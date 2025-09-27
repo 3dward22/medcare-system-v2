@@ -2,3 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 @import "bootstrap/dist/css/bootstrap.min.css";
+
+/* Dashboard background gradient */
+.bg-dashboard-gradient {
+    background: linear-gradient(to bottom right, #d1fae5, #ffffff, #cffafe);
+    min-height: 100vh;
+}
+
+/* Card shadow effect */
+.card-shadow {
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.card-shadow:hover {
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    transform: translateY(-5px);
+}

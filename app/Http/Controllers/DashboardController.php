@@ -2,19 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Medicine;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use App\Models\Appointment;
 use App\Models\Patient;
+use Carbon\Carbon;
+
 class DashboardController extends Controller
 {
-     public function index()
+    public function index()
     {
-        $medicineCount = Medicine::count();
-        $appointmentCount = Appointment::count();
-        $patientCount = Patient::count();
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
 
-        return view('dashboard', compact('medicineCount', 'appointmentCount', 'patientCount'));
+        $user = Auth::user();
+
+        // 🔑 Check role and show correct dashboard
+        switch ($user->role) {
+            case 'admin':
+                $patientsCount = Patient::count();
+                $appointmentsCount = Appointment::count();
+
+                return view('dashboard', [
+                    'patientsCount' => $patientsCount,
+                    'appointmentsCount' => $appointmentsCount
+                ]);
+
+            case 'nurse':
+                $todayAppointments = Appointment::whereDate('appointment_date', Carbon::today())
+                    ->orderBy('appointment_date', 'asc')
+                    ->get();
+
+                return view('nurse.dashboard', [
+                    'todayAppointments' => $todayAppointments
+                ]);
+
+            case 'student':
+                $appointments = Appointment::where('user_id', $user->id)->get();
+
+                return view('students.dashboard', [
+                    'appointments' => $appointments
+                ]);
+
+            default:
+                abort(403, 'Unauthorized');
+        }
     }
 }

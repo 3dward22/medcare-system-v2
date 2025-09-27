@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AppointmentController extends Controller
 {
@@ -13,17 +14,19 @@ class AppointmentController extends Controller
     {
         $this->middleware('auth');
     }
-    public function indexForNurse()
-{
-    $appointments = Appointment::latest()->paginate(10); // adjust query as needed
-    return view('nurse.appointments.index', compact('appointments'));
-}
 
-    // Show all appointments for logged-in student
+    // Nurse: show all appointments
+    public function indexForNurse()
+    {
+        $appointments = Appointment::latest()->paginate(10);
+        return view('nurse.appointments.index', compact('appointments'));
+    }
+
+    // Student: show all appointments for logged-in student
     public function index()
     {
         $appointments = Appointment::where('user_id', Auth::id())->get();
-         return view('students.appointments.index', compact('appointments'));
+        return view('students.appointments.index', compact('appointments'));
     }
 
     // Show a single appointment
@@ -42,7 +45,6 @@ class AppointmentController extends Controller
         $request->validate([
             'date' => 'required|date',
             'time' => 'required',
-            // add other fields as needed
         ]);
 
         Appointment::create([
@@ -53,5 +55,28 @@ class AppointmentController extends Controller
 
         return redirect()->route('student.appointments.index')
                  ->with('success', 'Appointment created successfully.');
+    }
+
+    // ✅ Admin: View ALL appointments (and also prepare Today + Week data for modals)
+    public function allAppointments()
+    {
+        $allAppointments = Appointment::orderBy('appointment_date', 'asc')->get();
+
+        $today = Carbon::today();
+        $todayAppointments = Appointment::whereDate('appointment_date', $today)
+                                        ->orderBy('appointment_date', 'asc')
+                                        ->get();
+
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+        $weekAppointments = Appointment::whereBetween('appointment_date', [$startOfWeek, $endOfWeek])
+                                       ->orderBy('appointment_date', 'asc')
+                                       ->get();
+
+        return view('admin.appointments.all', [
+            'allAppointments' => $allAppointments,
+            'todayAppointments' => $todayAppointments,
+            'weekAppointments' => $weekAppointments,
+        ]);
     }
 }

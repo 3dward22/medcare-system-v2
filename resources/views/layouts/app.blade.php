@@ -9,11 +9,15 @@
     {{-- Bootstrap CSS --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    {{-- Bootstrap Icons --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
     {{-- Toastr CSS --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     {{-- Laravel Vite --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css'])
+
 </head>
 <body>
 @php
@@ -24,13 +28,6 @@
         'nurse'   => route('nurse.dashboard'),
         'student' => route('student.dashboard'),
         default   => url('/'),
-    };
-
-    $medicinesRoute = match($userRole) {
-        'admin' => route('admin.medicines.index'),
-        'nurse' => route('medicines.index'),
-        'student' => route('student.medicine'),
-        default => null, // safer than '#'
     };
 
     $appointmentsRoute = match($userRole) {
@@ -53,16 +50,6 @@
                     <a class="nav-link" href="{{ $dashboardRoute }}">Dashboard</a>
                 </li>
 
-                @if(auth()->user()->role === 'nurse')
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('nurse.medicines.index') }}">Medicines</a>
-    </li>
-@elseif(auth()->user()->role === 'admin')
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('admin.medicines.index') }}">Medicines</a>
-    </li>
-@endif
-
                 @if($appointmentsRoute)
                 <li class="nav-item">
                     <a class="nav-link" href="{{ $appointmentsRoute }}">Appointments</a>
@@ -80,14 +67,14 @@
     </div>
 </nav>
 
-
-
 {{-- Main Content --}}
-<main class="py-4 container">
+<main class="py-4 container bg-dashboard-gradient">
     @yield('content')
 </main>
 
-{{-- jQuery (must come before medicines.js) --}}
+
+
+{{-- jQuery --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 {{-- Bootstrap JS --}}
@@ -98,7 +85,6 @@
 
 {{-- Page-specific scripts --}}
 @stack('scripts')
-<script src="{{ asset('js/medicines.js') }}"></script>
 
 <script>
     window.flashMessages = {
@@ -113,6 +99,17 @@
     if (window.flashMessages.warning) toastr.warning(window.flashMessages.warning);
     if (window.flashMessages.info) toastr.info(window.flashMessages.info);
 </script>
+
+<footer class="bg-blue-600 text-white mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center">
+        <p class="text-sm">&copy; {{ date('Y') }} MedCare System. All rights reserved.</p>
+        <div class="flex space-x-4 mt-3 sm:mt-0 text-sm">
+            <span>v1.0</span>
+            <a href="#" class="hover:underline">Privacy</a>
+            <a href="#" class="hover:underline">Terms</a>
+        </div>
+    </div>
+</footer>
 
 </body>
 </html>
