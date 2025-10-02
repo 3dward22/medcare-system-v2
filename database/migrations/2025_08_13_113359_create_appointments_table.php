@@ -10,10 +10,39 @@ return new class extends Migration
     {
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
-            $table->string('student_name');
-            $table->dateTime('appointment_date');
-            $table->enum('status', ['pending', 'done', 'cancelled'])->default('pending');
+
+            // Link to users table (student)
+            $table->foreignId('student_id')
+                  ->constrained('users')
+                  ->cascadeOnUpdate()
+                  ->cascadeOnDelete();
+
+            // Date & time the student requested
+            $table->dateTime('requested_datetime');
+
+            // Approved date & time (nurse/admin can change)
+            $table->dateTime('approved_datetime')->nullable();
+
+            // Status options
+            $table->enum('status', ['pending', 'approved', 'rescheduled', 'declined', 'completed'])
+                  ->default('pending');
+
+            // Which user approved it (nurse/admin)
+            $table->foreignId('approved_by')
+                  ->nullable()
+                  ->constrained('users')
+                  ->cascadeOnUpdate()
+                  ->nullOnDelete();
+
+            // Optional note from nurse/admin
+            $table->text('admin_note')->nullable();
+
             $table->timestamps();
+
+            // Indexes for faster queries
+            $table->index('requested_datetime');
+            $table->index('approved_datetime');
+            $table->index('status');
         });
     }
 

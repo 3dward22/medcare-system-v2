@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<main class="py-4 container bg-dashboard-gradient min-h-screen">
+<main class="pt-16 py-4 bg-dashboard-gradient min-h-screen">
+    <div class="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header Section -->
         <div class="mb-12 text-center">
             <div class="flex items-center justify-center mb-6">
@@ -18,9 +18,10 @@
         </div>
 
         <!-- Quick Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+
             <!-- Total Patients Card -->
-            <div class="group relative overflow-hidden bg-white rounded-2xl p-8 border-l-4 border-teal-500 card-shadow">
+      <!--      <div class="group relative overflow-hidden bg-white rounded-2xl p-8 border-l-4 border-teal-500 card-shadow">
                 <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-teal-100 to-teal-200 rounded-full -mr-10 -mt-10 opacity-60"></div>
                 <div class="relative flex items-center justify-between">
                     <div>
@@ -40,7 +41,7 @@
                         <span class="text-white text-3xl">👥</span>
                     </div>
                 </div>
-            </div>
+            </div>-->
 
             <!-- Total Appointments Card -->
             <div class="group relative overflow-hidden bg-white rounded-2xl p-8 border-l-4 border-blue-500 card-shadow">
@@ -156,7 +157,8 @@
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full min-w-full table-auto">
+            
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">User</th>

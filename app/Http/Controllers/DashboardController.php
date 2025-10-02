@@ -30,13 +30,21 @@ class DashboardController extends Controller
                 ]);
 
             case 'nurse':
-                $todayAppointments = Appointment::whereDate('appointment_date', Carbon::today())
-                    ->orderBy('appointment_date', 'asc')
+                $todayAppointments = Appointment::with('user')
+                     ->whereDate('requested_datetime', Carbon::today())
+                     ->orderBy('requested_datetime', 'asc')
+                     ->get();
+
+                 $upcomingAppointments = Appointment::with('user')
+                    ->where('requested_datetime', '>=', Carbon::today())
+                    ->orderBy('requested_datetime', 'asc')
                     ->get();
 
                 return view('nurse.dashboard', [
-                    'todayAppointments' => $todayAppointments
+                    'todayAppointments' => $todayAppointments,
+                    'upcomingAppointments' => $upcomingAppointments
                 ]);
+
 
             case 'student':
                 $appointments = Appointment::where('user_id', $user->id)->get();

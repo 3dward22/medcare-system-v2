@@ -19,8 +19,8 @@
             <tbody>
                 @foreach ($appointments as $appointment)
                     <tr>
-                        <td>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('F d, Y') }}</td>
-                        <td>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('h:i A') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($appointment->requested_datetime)->format('F d, Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($appointment->requested_datetime)->format('h:i A') }}</td>
                         <td>
                             <span class="badge 
                                 @if($appointment->status === 'pending') bg-warning
@@ -37,6 +37,7 @@
     @else
         <p class="text-muted mt-4">No upcoming appointments.</p>
     @endif
-    <button type="submit" class="btn btn-primary">Book Appointment</button>
+
+    <a href="{{ route('student.appointments.index') }}" class="btn btn-primary mt-3">Book Appointment</a>
 </div>
 @endsection

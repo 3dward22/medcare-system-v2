@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -8,6 +8,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\AppointmentController as AdminAppointmentController;
+use App\Http\Controllers\OtpController; // ✅ Add this
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +23,10 @@ Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('register', [RegisteredUserController::class, 'store']);
 });
+
+// ✅ OTP verification routes for admin/nurse (guest users)
+Route::get('/otp-verify', [OtpController::class, 'show'])->name('otp.verify');
+Route::post('/otp-verify', [OtpController::class, 'verify'])->name('otp.verify.post');
 
 /*
 |--------------------------------------------------------------------------
@@ -38,25 +44,20 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:admin')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    //all appoiments
-    Route::get('admin/appointments', [AppointmentController::class, 'allAppointments'])
-    ->name('admin.appointments.all');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // User management
-    Route::get('admin/users', [AdminController::class, 'index'])->name('admin.users.index');
-    Route::delete('admin/users/{user}', [AdminController::class, 'destroy'])->name('admin.users.destroy');
+        // Admin appointment management
+        Route::get('admin/appointments', [AdminAppointmentController::class, 'index'])
+            ->name('admin.appointments.all');
+        Route::get('admin/appointments/today', [AdminAppointmentController::class, 'today'])
+            ->name('admin.appointments.today');
+        Route::get('admin/appointments/week', [AdminAppointmentController::class, 'week'])
+            ->name('admin.appointments.week');
 
-    // ✅ Admin appointment filters
-    Route::get('admin/appointments/today', [AppointmentController::class, 'today'])->name('admin.appointments.today');
-    Route::get('admin/appointments/week', [AppointmentController::class, 'week'])->name('admin.appointments.week');
-
-    // ✅ NEW ROUTE: View all student appointments for this week
-    Route::get('admin/appointments/week/students', [AppointmentController::class, 'studentAppointmentsThisWeek'])
-        ->name('admin.appointments.week.students');
+        // User management
+        Route::get('admin/users', [AdminController::class, 'index'])->name('admin.users.index');
+        Route::delete('admin/users/{user}', [AdminController::class, 'destroy'])->name('admin.users.destroy');
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -64,17 +65,18 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('nurse')->name('nurse.')->middleware('role:nurse')->group(function () {
-        // Nurse dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Student Records
         Route::get('/students', [AdminController::class, 'studentRecords'])->name('students.index');
 
-        // Appointments
+        // Nurse appointments
         Route::get('appointments', [AppointmentController::class, 'indexForNurse'])->name('appointments.index');
         Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+        Route::put('appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
+        Route::get('appointments/today-json', [AppointmentController::class, 'todayAppointmentsJson'])
+                ->name('appointments.today-json');
 
-        // Notifications
+        // Notifications page
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     });
 
@@ -86,7 +88,6 @@ Route::middleware('auth')->group(function () {
     Route::prefix('student')->middleware('role:student')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('student.dashboard');
 
-        // Appointments
         Route::resource('appointments', AppointmentController::class)
             ->only(['index', 'show', 'store'])
             ->names([
@@ -94,11 +95,20 @@ Route::middleware('auth')->group(function () {
                 'show' => 'student.appointments.show',
                 'store' => 'student.appointments.store',
             ]);
+        Route::delete('appointments/{appointment}', [AppointmentController::class, 'destroy'])
+            ->name('student.appointments.destroy');
 
-        // Notifications
+        // Notifications page
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications Polling API (for all authenticated users)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/notifications/check', [NotificationController::class, 'check'])
+        ->name('notifications.check');
 });
 
 /*

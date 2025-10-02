@@ -8,26 +8,25 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
     {{-- Appointment Form --}}
     <div class="card mb-4">
-        <div class="card-header">Book New Appointment</div>
+        <div class="card-header">📅 Request New Appointment</div>
         <div class="card-body">
-            <form action="{{ route('nurse.appointments.store') }}" method="POST">
+            <form action="{{ route('student.appointments.store') }}" method="POST">
                 @csrf
                 <div class="mb-3">
-                    <label for="date" class="form-label">Date</label>
-                    <input type="date" name="date" id="date" class="form-control" required>
+                    <label for="requested_datetime" class="form-label">Choose Date & Time</label>
+                    <input type="datetime-local" name="requested_datetime" id="requested_datetime" 
+                           class="form-control @error('requested_datetime') is-invalid @enderror" required>
+                    @error('requested_datetime')
+                        <span class="invalid-feedback">{{ $message }}</span>
+                    @enderror
                 </div>
-                <div class="mb-3">
-                    <label for="time" class="form-label">Time</label>
-                    <input type="time" name="time" id="time" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Book Appointment</button>
+                <button type="submit" class="btn btn-primary">Request Appointment</button>
             </form>
         </div>
     </div>
@@ -37,34 +36,53 @@
         <div class="card-header">My Appointments</div>
         <div class="card-body">
             @if($appointments->count() > 0)
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($appointments as $appointment)
-                        <tr>
-                            <td>{{ $appointment->id }}</td>
-                            <td>{{ $appointment->date }}</td>
-                            <td>{{ $appointment->time }}</td>
-                            <td>
-                                <a href="{{ route('appointments.show', $appointment->id) }}" class="btn btn-sm btn-info">View</a>
-                                {{-- Add edit/delete buttons if needed --}}
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Approved Date</th>
+                                <th>Admin Note</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($appointments as $appointment)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($appointment->requested_datetime)->format('M d, Y h:i A') }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 
+                                        $appointment->status === 'approved' ? 'success' : 
+                                        ($appointment->status === 'pending' ? 'warning' : 
+                                        ($appointment->status === 'declined' ? 'danger' : 'secondary')) }}">
+                                        {{ ucfirst($appointment->status) }}
+                                    </span>
+                                </td>
+                                <td>{{ $appointment->approved_datetime ? \Carbon\Carbon::parse($appointment->approved_datetime)->format('M d, Y h:i A') : '-' }}</td>
+                                <td>{{ $appointment->admin_note ?? '-' }}</td>
+                                <td>
+                                    @if($appointment->status === 'pending')
+                                        <form action="{{ route('student.appointments.destroy', $appointment->id) }}" 
+                                              method="POST" 
+                                              onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-danger btn-sm">Cancel</button>
+                                        </form>
+                                    @else
+                                        <em>No action</em>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             @else
-                <p>No appointments booked yet.</p>
+                <p class="text-muted">No appointments booked yet.</p>
             @endif
         </div>
     </div>
 </div>
 @endsection
-
