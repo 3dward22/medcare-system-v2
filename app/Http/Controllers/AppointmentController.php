@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Events\NewNotification;
-
+use App\Models\GuardianSmsLog;
+use Illuminate\Support\Facades\Http;
 class AppointmentController extends Controller
 {
     public function __construct()
@@ -155,4 +156,40 @@ class AppointmentController extends Controller
             'appointments' => $todayAppointments,
         ]);
     }
+
+        public function notifyGuardian($appointmentId)
+    {
+        $appointment = Appointment::findOrFail($appointmentId);
+        $student = $appointment->student;
+
+    if (!$student || !$student->guardian_phone) {
+        return back()->with('error', 'Guardian contact not found for this student.');
+    }
+
+        $message = "Hello {$student->guardian_name}, this is MedCare. 
+        Your child {$student->name} had a check-up today. 
+        Diagnosis/Notes: " . ($appointment->notes ?? 'No notes available.');
+
+        // Example using iTexMo or Semaphore (replace with your SMS API)
+        /*
+        $response = Http::post('https://api.itexmo.com/api/broadcast', [
+        'apikey' => env('ITEXMO_API_KEY'),
+        'number' => $student->guardian_phone,
+        'message' => $message,
+        'sendername' => 'MedCare',
+        ]);
+        */
+
+        // Log the message
+        GuardianSmsLog::create([
+        'appointment_id' => $appointment->id,
+        'student_id' => $student->id,
+        'guardian_name' => $student->guardian_name,
+        'guardian_phone' => $student->guardian_phone,
+        'message' => $message,
+        'sent_at' => now(),
+        ]);
+
+            return back()->with('success', 'Guardian has been notified and logged successfully.');
+}
 }

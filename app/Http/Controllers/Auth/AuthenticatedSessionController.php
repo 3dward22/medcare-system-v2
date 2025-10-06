@@ -32,7 +32,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         $user = Auth::user();
-
+/*
         // OTP logic for admin and nurse
         if (in_array($user->role, ['admin', 'nurse'])) {
     $otp = rand(100000, 999999);
@@ -54,7 +54,7 @@ class AuthenticatedSessionController extends Controller
     return redirect()->route('login')->with('show_otp_modal', true)
                                      ->with('success', 'OTP sent to your email.');
 }
-
+*/
         // Students bypass OTP
         $request->session()->regenerate();
 

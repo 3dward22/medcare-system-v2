@@ -9,7 +9,9 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\AppointmentController as AdminAppointmentController;
-use App\Http\Controllers\OtpController; // ✅ Add this
+use App\Http\Controllers\OtpController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\GuardianSmsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,7 +76,7 @@ Route::middleware('auth')->group(function () {
         Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::put('appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::get('appointments/today-json', [AppointmentController::class, 'todayAppointmentsJson'])
-                ->name('appointments.today-json');
+            ->name('appointments.today-json');
 
         // Notifications page
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -104,11 +106,37 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Guardian SMS Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/guardian-sms', [GuardianSmsController::class, 'index'])
+        ->name('guardian.sms.index');
+    Route::post('/guardian-sms/send', [GuardianSmsController::class, 'send'])
+        ->name('guardian.sms.send');
+
+    /*
+    |--------------------------------------------------------------------------
     | Notifications Polling API (for all authenticated users)
     |--------------------------------------------------------------------------
     */
     Route::get('/notifications/check', [NotificationController::class, 'check'])
         ->name('notifications.check');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Guardian Notify (Link with Appointments)
+    |--------------------------------------------------------------------------
+    */
+    Route::post('/appointments/{id}/notify-guardian', [AppointmentController::class, 'notifyGuardian'])
+        ->name('appointments.notifyGuardian');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Report Generation
+    |--------------------------------------------------------------------------
+    */
+    Route::get('reports/monthly', [ReportController::class, 'generateMonthlyReport'])
+        ->name('reports.monthly');
 });
 
 /*
