@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <main class="pt-20 bg-gradient-to-br from-sky-50 via-white to-teal-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -15,16 +13,16 @@
         </div>
 
         <!-- Flash messages -->
-        @if(session('success'))
-            <div class="alert alert-success shadow-sm rounded-lg">{{ session('success') }}</div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-danger shadow-sm rounded-lg">{{ session('error') }}</div>
-        @endif
+        <?php if(session('success')): ?>
+            <div class="alert alert-success shadow-sm rounded-lg"><?php echo e(session('success')); ?></div>
+        <?php endif; ?>
+        <?php if(session('error')): ?>
+            <div class="alert alert-danger shadow-sm rounded-lg"><?php echo e(session('error')); ?></div>
+        <?php endif; ?>
 
-        @if($appointments->isEmpty())
+        <?php if($appointments->isEmpty()): ?>
             <div class="text-center py-12 text-gray-500">No appointments found.</div>
-        @else
+        <?php else: ?>
         <!-- Table -->
         <div class="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-100">
             <div class="overflow-x-auto">
@@ -41,82 +39,85 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($appointments as $appointment)
+                        <?php $__currentLoopData = $appointments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $appointment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr class="hover:bg-gray-50 transition">
-                            <td class="px-4 py-3 font-medium text-gray-800">{{ $appointment->student->name ?? 'Unknown' }}</td>
-                            <td class="px-4 py-3 text-gray-600">{{ \Carbon\Carbon::parse($appointment->requested_datetime)->format('M d, Y h:i A') }}</td>
+                            <td class="px-4 py-3 font-medium text-gray-800"><?php echo e($appointment->student->name ?? 'Unknown'); ?></td>
+                            <td class="px-4 py-3 text-gray-600"><?php echo e(\Carbon\Carbon::parse($appointment->requested_datetime)->format('M d, Y h:i A')); ?></td>
                             <td class="px-4 py-3 text-gray-500">
-                                @if($appointment->approved_datetime)
-                                    {{ \Carbon\Carbon::parse($appointment->approved_datetime)->format('M d, Y h:i A') }}
-                                @else
+                                <?php if($appointment->approved_datetime): ?>
+                                    <?php echo e(\Carbon\Carbon::parse($appointment->approved_datetime)->format('M d, Y h:i A')); ?>
+
+                                <?php else: ?>
                                     <span class="italic text-gray-400">Not set</span>
-                                @endif
+                                <?php endif; ?>
                             </td>
                             <td class="px-4 py-3">
                                 <span class="badge d-flex align-items-center gap-1 px-2 py-1 text-sm rounded-pill
-                                    @if($appointment->status === 'pending') bg-warning text-dark
-                                    @elseif($appointment->status === 'approved') bg-success
-                                    @elseif($appointment->status === 'rescheduled') bg-info text-dark
-                                    @elseif($appointment->status === 'declined') bg-danger
-                                    @elseif($appointment->status === 'completed') bg-primary
-                                    @elseif($appointment->status === 'cancelled') bg-secondary text-white
-                                    @endif">
-                                    @switch($appointment->status)
-                                        @case('approved') ✅ @break
-                                        @case('pending') ⏳ @break
-                                        @case('rescheduled') 🔁 @break
-                                        @case('declined') ❌ @break
-                                        @case('completed') 🩺 @break
-                                        @case('cancelled') 🚫 @break
-                                    @endswitch
-                                    {{ ucfirst($appointment->status) }}
+                                    <?php if($appointment->status === 'pending'): ?> bg-warning text-dark
+                                    <?php elseif($appointment->status === 'approved'): ?> bg-success
+                                    <?php elseif($appointment->status === 'rescheduled'): ?> bg-info text-dark
+                                    <?php elseif($appointment->status === 'declined'): ?> bg-danger
+                                    <?php elseif($appointment->status === 'completed'): ?> bg-primary
+                                    <?php elseif($appointment->status === 'cancelled'): ?> bg-secondary text-white
+                                    <?php endif; ?>">
+                                    <?php switch($appointment->status):
+                                        case ('approved'): ?> ✅ <?php break; ?>
+                                        <?php case ('pending'): ?> ⏳ <?php break; ?>
+                                        <?php case ('rescheduled'): ?> 🔁 <?php break; ?>
+                                        <?php case ('declined'): ?> ❌ <?php break; ?>
+                                        <?php case ('completed'): ?> 🩺 <?php break; ?>
+                                        <?php case ('cancelled'): ?> 🚫 <?php break; ?>
+                                    <?php endswitch; ?>
+                                    <?php echo e(ucfirst($appointment->status)); ?>
+
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-    @if($appointment->status === 'completed')
+    <?php if($appointment->status === 'completed'): ?>
         <span class="badge bg-success text-white px-3 py-1 rounded-pill">✅ Completed</span>
-    @else
+    <?php else: ?>
         <span class="badge bg-secondary text-white px-3 py-1 rounded-pill">Not Completed</span>
-    @endif
+    <?php endif; ?>
 </td>
 
                             <td class="px-4 py-3 text-center">
-    @if(!in_array($appointment->status, ['cancelled', 'declined', 'completed', 'rescheduled', 'approved']))
+    <?php if(!in_array($appointment->status, ['cancelled', 'declined', 'completed', 'rescheduled', 'approved'])): ?>
         <button class="btn btn-sm btn-primary shadow-sm"
             data-bs-toggle="modal"
             data-bs-target="#manageAppointmentModal"
-            data-action="{{ route('nurse.appointments.update', $appointment) }}"
-            data-approved_datetime="{{ $appointment->approved_datetime }}"
-            data-status="{{ $appointment->status }}"
-            data-note="{{ $appointment->admin_note }}"
-            data-findings="{{ $appointment->findings }}">
+            data-action="<?php echo e(route('nurse.appointments.update', $appointment)); ?>"
+            data-approved_datetime="<?php echo e($appointment->approved_datetime); ?>"
+            data-status="<?php echo e($appointment->status); ?>"
+            data-note="<?php echo e($appointment->admin_note); ?>"
+            data-findings="<?php echo e($appointment->findings); ?>">
             Manage
         </button>
-    @else
+    <?php else: ?>
         <span class="text-gray-400 text-sm italic">No actions available</span>
-    @endif
+    <?php endif; ?>
 </td>
 
                         </tr>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                 </table>
             </div>
 
             <div class="p-4">
-                {{ $appointments->links() }}
+                <?php echo e($appointments->links()); ?>
+
             </div>
         </div>
-        @endif
+        <?php endif; ?>
     </div>
 </main>
 
 <!-- 🩺 Responsive Modal -->
 <div class="modal fade" id="manageAppointmentModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-xl"> {{-- ✅ Bigger width & centered --}}
+  <div class="modal-dialog modal-dialog-centered modal-xl"> 
     <form method="POST" id="manageAppointmentForm" class="w-100">
-      @csrf
-      @method('PUT')
+      <?php echo csrf_field(); ?>
+      <?php echo method_field('PUT'); ?>
       <div class="modal-content shadow-2xl border-0 rounded-3">
 
         <!-- Header -->
@@ -287,4 +288,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\medcare-system\resources\views/nurse/appointments/index.blade.php ENDPATH**/ ?>

@@ -22,5 +22,10 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+
+        // ✅ Add this for nurse/admin role gate
+        Gate::define('is-nurse-or-admin', function ($user) {
+            return in_array($user->role, ['nurse', 'admin']);
+        });
     }
 }

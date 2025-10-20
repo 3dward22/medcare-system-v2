@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <style>
     /* 🌈 MedCare Theme Enhancements */
     body {
@@ -72,22 +70,22 @@
 
 <div class="container py-4">
 
-    {{-- 🩺 Header --}}
+    
     <div class="dashboard-header mb-5">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div>
                 <h1>👩‍⚕️ Nurse Dashboard</h1>
-                <p class="mb-0">Welcome back, <strong>{{ auth()->user()->name }}</strong>!  
-                    You’re logged in as <strong>{{ ucfirst(auth()->user()->role) }}</strong>.
+                <p class="mb-0">Welcome back, <strong><?php echo e(auth()->user()->name); ?></strong>!  
+                    You’re logged in as <strong><?php echo e(ucfirst(auth()->user()->role)); ?></strong>.
                 </p>
             </div>
             <div class="text-end">
 
-            @can('is-nurse-or-admin')
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('is-nurse-or-admin')): ?>
             <button class="btn btn-danger btn-pill shadow-sm mt-2" data-bs-toggle="modal" data-bs-target="#emergencyModal">
                 🚨 Emergency / Walk-in
             </button>
-            @endcan
+            <?php endif; ?>
                 <button class="btn btn-light btn-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#sendSmsModal">
                     📩 Send SMS to Guardian
                 </button>
@@ -96,28 +94,28 @@
         </div>
     </div>
 
-    {{-- 📊 Summary Cards --}}
+    
 <div class="row g-4 mb-4 text-center">
     <div class="col-md-6">
         <div class="card summary-card text-success shadow-sm p-4">
             <h6>Today's Appointments</h6>
-            <h2 id="todayAppointmentsCount">{{ $todayAppointments->count() }}</h2>
+            <h2 id="todayAppointmentsCount"><?php echo e($todayAppointments->count()); ?></h2>
         </div>
     </div>
     <div class="col-md-6">
         <div class="card summary-card text-info shadow-sm p-4">
             <h6>Upcoming Appointments</h6>
-            <h2>{{ $upcomingAppointments->count() }}</h2>
+            <h2><?php echo e($upcomingAppointments->count()); ?></h2>
         </div>
     </div>
 </div>
 
-{{-- 📅 Today's Appointments --}}
+
 <div class="card card-medcare shadow-sm mb-4">
     <div class="card-body">
         <h4 class="fw-semibold mb-3">📋 Today's Appointments</h4>
         <div id="todayAppointmentsTableWrapper">
-            @if ($todayAppointments->count() > 0)
+            <?php if($todayAppointments->count() > 0): ?>
                 <div class="table-responsive">
                     <table class="table align-middle table-hover mb-0">
                         <thead>
@@ -128,54 +126,56 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($todayAppointments as $appointment)
+                            <?php $__currentLoopData = $todayAppointments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $appointment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td class="fw-medium">{{ $appointment->user->name ?? 'Unknown' }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($appointment->requested_datetime)->format('h:i A') }}</td>
+                                    <td class="fw-medium"><?php echo e($appointment->user->name ?? 'Unknown'); ?></td>
+                                    <td><?php echo e(\Carbon\Carbon::parse($appointment->requested_datetime)->format('h:i A')); ?></td>
                                     <td>
                                         <span class="badge rounded-pill px-3 py-2 
-                                            @if($appointment->status === 'pending') bg-warning text-dark
-                                            @elseif($appointment->status === 'approved') bg-success
-                                            @else bg-secondary
-                                            @endif">
-                                            {{ ucfirst($appointment->status) }}
+                                            <?php if($appointment->status === 'pending'): ?> bg-warning text-dark
+                                            <?php elseif($appointment->status === 'approved'): ?> bg-success
+                                            <?php else: ?> bg-secondary
+                                            <?php endif; ?>">
+                                            <?php echo e(ucfirst($appointment->status)); ?>
+
                                         </span>
-                                        @if($appointment->status === 'approved')
+                                        <?php if($appointment->status === 'approved'): ?>
     <button
     class="btn btn-success btn-sm"
     data-bs-toggle="modal"
     data-bs-target="#completeAppointmentModal"
-    data-action="{{ route('nurse.appointments.complete', $appointment->id) }}" {{-- ✅ We'll create this route --}}>
+    data-action="<?php echo e(route('nurse.appointments.complete', $appointment->id)); ?>" >
     Complete
     </button>
 
-@endif
+<?php endif; ?>
                                     </td>
                                 </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
                 </div>
-            @else
+            <?php else: ?>
                 <div class="text-center py-4 text-muted">No appointments scheduled for today.</div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
-{{-- 🗓️ Upcoming Appointments — List View with Centered Status --}}
+
 <div class="card summary-card text-info shadow-sm mb-4 border-0">
     <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="fw-semibold mb-0">🗓️ Upcoming Appointments</h4>
             <span class="badge bg-info text-white px-3 py-2 rounded-pill">
-                Total: {{ $upcomingAppointments->count() }}
+                Total: <?php echo e($upcomingAppointments->count()); ?>
+
             </span>
         </div>
 
-        @if ($upcomingAppointments->count() > 0)
+        <?php if($upcomingAppointments->count() > 0): ?>
             <ul class="list-group list-group-flush">
-                @foreach ($upcomingAppointments->sortByDesc('requested_datetime')->take(5) as $appointment)
+                <?php $__currentLoopData = $upcomingAppointments->sortByDesc('requested_datetime')->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $appointment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
                         
                         <!-- Patient Info -->
@@ -184,9 +184,10 @@
                                 🧍
                             </div>
                             <div>
-                                <h6 class="fw-semibold mb-1">{{ $appointment->user->name ?? 'Unknown' }}</h6>
+                                <h6 class="fw-semibold mb-1"><?php echo e($appointment->user->name ?? 'Unknown'); ?></h6>
                                 <p class="text-muted mb-0" style="font-size: 0.9rem;">
-                                    {{ \Carbon\Carbon::parse($appointment->requested_datetime)->format('M d, Y h:i A') }}
+                                    <?php echo e(\Carbon\Carbon::parse($appointment->requested_datetime)->format('M d, Y h:i A')); ?>
+
                                 </p>
                             </div>
                         </div>
@@ -194,58 +195,59 @@
                         <!-- Centered Status -->
                         <div class="text-center flex-shrink-0" style="width: 140px;">
                             <span class="badge rounded-pill px-3 py-2
-                                @if($appointment->status === 'pending') bg-warning text-dark
-                                @elseif($appointment->status === 'approved') bg-success
-                                @elseif($appointment->status === 'rescheduled') bg-info
-                                @elseif($appointment->status === 'declined') bg-danger
-                                @else bg-secondary
-                                @endif">
-                                {{ ucfirst($appointment->status) }}
+                                <?php if($appointment->status === 'pending'): ?> bg-warning text-dark
+                                <?php elseif($appointment->status === 'approved'): ?> bg-success
+                                <?php elseif($appointment->status === 'rescheduled'): ?> bg-info
+                                <?php elseif($appointment->status === 'declined'): ?> bg-danger
+                                <?php else: ?> bg-secondary
+                                <?php endif; ?>">
+                                <?php echo e(ucfirst($appointment->status)); ?>
+
                             </span>
                         </div>
 
                         <!-- Manage Button -->
                         <div class="text-end flex-shrink-0" style="width: 120px;">
-                            @if(!in_array($appointment->status, ['cancelled', 'declined', 'completed', 'rescheduled', 'approved']))
+                            <?php if(!in_array($appointment->status, ['cancelled', 'declined', 'completed', 'rescheduled', 'approved'])): ?>
                                 <button
     class="btn btn-outline-primary btn-sm px-3 shadow-sm"
     data-bs-toggle="modal"
     data-bs-target="#manageAppointmentModal"
-    data-action="{{ url('/nurse/appointments/'.$appointment->id) }}"
+    data-action="<?php echo e(url('/nurse/appointments/'.$appointment->id)); ?>"
 
-    data-approved_datetime="{{ $appointment->approved_datetime }}"
-    data-status="{{ $appointment->status }}"
-    data-note="{{ $appointment->admin_note }}"
-    data-findings="{{ $appointment->findings }}">
+    data-approved_datetime="<?php echo e($appointment->approved_datetime); ?>"
+    data-status="<?php echo e($appointment->status); ?>"
+    data-note="<?php echo e($appointment->admin_note); ?>"
+    data-findings="<?php echo e($appointment->findings); ?>">
     Manage
 </button>
 
 
 
-                            @else
+                            <?php else: ?>
                                 <span class="text-muted small fst-italic">No actions</span>
-                            @endif
+                            <?php endif; ?>
                         </div>
 
                     </li>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </ul>
 
-            {{-- View All Button --}}
+            
             <div class="text-end mt-3">
-                <a href="{{ route('nurse.appointments.index') }}" class="btn btn-outline-info btn-pill px-4">
+                <a href="<?php echo e(route('nurse.appointments.index')); ?>" class="btn btn-outline-info btn-pill px-4">
                     View All Appointments →
                 </a>
             </div>
-        @else
+        <?php else: ?>
             <div class="text-center py-4 text-muted">No upcoming appointments.</div>
-        @endif
+        <?php endif; ?>
     </div>
 </div>
 
 
 
-{{-- ⚡ Quick Links (without Guardian SMS Log) --}}
+
 <h4 class="fw-semibold mb-3">⚡ Quick Access</h4>
 <div class="row g-3 mb-4">
     
@@ -254,7 +256,7 @@
         <div class="card card-medcare text-center p-4">
             <h5 class="fw-semibold mb-2">📖 Student Records</h5>
             <p class="text-muted small mb-3">Access medical profiles and history.</p>
-            <a href="{{ route('nurse.students.index') }}" class="btn btn-info btn-pill w-100">Open</a>
+            <a href="<?php echo e(route('nurse.students.index')); ?>" class="btn btn-info btn-pill w-100">Open</a>
         </div>
     </div>
 </div>
@@ -262,8 +264,8 @@
 <div class="modal fade" id="manageAppointmentModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <form method="POST" id="manageAppointmentForm" class="w-100">
-      @csrf
-      @method('PUT')
+      <?php echo csrf_field(); ?>
+      <?php echo method_field('PUT'); ?>
       <div class="modal-content shadow-2xl border-0 rounded-3">
 
         <!-- Header -->
@@ -337,7 +339,7 @@
 <div class="modal fade" id="completeAppointmentModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <form method="POST" id="completeAppointmentForm">
-      @csrf
+      <?php echo csrf_field(); ?>
       
       <div class="modal-content shadow-2xl border-0 rounded-3">
 
@@ -389,12 +391,12 @@
   </div>
 </div>
 
-    {{-- 📩 SMS Modal --}}
-    @include('nurse.partials.send-sms-modal')
+    
+    <?php echo $__env->make('nurse.partials.send-sms-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <div class="modal fade" id="emergencyModal">
   <div class="modal-dialog">
-    <form method="POST" id="emergencyForm" action="{{ route('nurse.appointments.emergency') }}">
-      @csrf
+    <form method="POST" id="emergencyForm" action="<?php echo e(route('nurse.appointments.emergency')); ?>">
+      <?php echo csrf_field(); ?>
       <div class="modal-content">
         <div class="modal-header bg-danger text-white">
           <h5 class="modal-title">🚨 Emergency Appointment</h5>
@@ -402,8 +404,8 @@
         </div>
         <div class="modal-body">
           <label>Student</label>
-          <select name="student_id" class="form-select">@foreach($students as $student) 
-            <option value="{{ $student->id }}">{{ $student->name }}</option>@endforeach
+          <select name="student_id" class="form-select"><?php $__currentLoopData = $students; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $student): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> 
+            <option value="<?php echo e($student->id); ?>"><?php echo e($student->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
           </select>
           <label class="mt-3">Reason (optional)</label>
           <textarea name="reason" class="form-control" placeholder="e.g. difficulty breathing..."></textarea>
@@ -418,7 +420,7 @@
 
 </div>
 
-{{-- 💡 JS: Auto-refresh Today’s Table --}}
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const manageModal = document.getElementById('manageAppointmentModal');
@@ -559,4 +561,6 @@ completeForm.addEventListener('submit', async function (e) {
 
 
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\medcare-system\resources\views/nurse/dashboard.blade.php ENDPATH**/ ?>

@@ -10,9 +10,11 @@
 
     {{-- Tailwind CSS --}}
     @vite(['resources/css/app.css'])
-
+    
     {{-- Alpine.js --}}
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    {{-- jQuery (for Toastr) --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     {{-- Toastr --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

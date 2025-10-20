@@ -1,6 +1,16 @@
-// resources/js/app.js
 import './bootstrap';
 console.log("MedCare app JS loaded");
+
+// 🔧 Environment Check
+console.log("Environment:", import.meta.env.VITE_ENV);
+
+if (import.meta.env.VITE_ENV === 'local') {
+    console.log("💻 Running on local environment");
+} else if (import.meta.env.VITE_ENV === 'school') {
+    console.log("🏫 Running on school environment");
+} else {
+    console.log("🌍 Production or undefined environment");
+}
 
 // 🔔 Listen for AppointmentApproved event
 window.Echo.channel('appointments')
@@ -30,15 +40,11 @@ window.Echo.channel('appointments')
         const badge = document.getElementById('notifBadge');
 
         if (notifList && badge) {
-            // Create a new notification item
             const notifItem = document.createElement('div');
             notifItem.className = 'p-2 text-sm text-gray-700 border-b hover:bg-gray-100 cursor-pointer';
             notifItem.innerText = `✅ Appointment #${e.appointment.id} approved`;
             
-            // Add to the top of the list
             notifList.prepend(notifItem);
-
-            // Update badge count
             badge.classList.remove('hidden');
             badge.innerText = notifList.childElementCount;
         }

@@ -70,16 +70,29 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/students', [AdminController::class, 'studentRecords'])->name('students.index');
-
+        Route::post('/appointments/emergency', [AppointmentController::class, 'storeEmergency'])
+    ->name('appointments.emergency');
         // Nurse appointments
         Route::get('appointments', [AppointmentController::class, 'indexForNurse'])->name('appointments.index');
         Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::put('appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::get('appointments/today-json', [AppointmentController::class, 'todayAppointmentsJson'])
             ->name('appointments.today-json');
-
+        //compeltion route    
+        Route::post('appointments/{appointment}/complete', [AppointmentController::class, 'complete'])
+            ->name('appointments.complete');
         // Notifications page
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        // Emergency Records
+    Route::prefix('emergency')->name('emergency.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\EmergencyRecordController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\EmergencyRecordController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\EmergencyRecordController::class, 'store'])->name('store');
+    Route::get('/{emergency}', [\App\Http\Controllers\EmergencyRecordController::class, 'show'])->name('show');
+});
+
+    
+    
     });
 
     /*
@@ -138,6 +151,11 @@ Route::middleware('auth')->group(function () {
     Route::get('reports/monthly', [ReportController::class, 'generateMonthlyReport'])
         ->name('reports.monthly');
 });
+// ✅ Fix for session message clearing in app.blade.php
+Route::get('/clear-session-messages', function () {
+    session()->forget(['success', 'error']);
+    return response()->json(['status' => 'cleared']);
+})->name('clear.session.messages');
 
 /*
 |--------------------------------------------------------------------------

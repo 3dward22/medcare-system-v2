@@ -24,8 +24,9 @@ return new class extends Migration
             $table->dateTime('approved_datetime')->nullable();
 
             // Status options
-            $table->enum('status', ['pending', 'approved', 'rescheduled', 'declined', 'completed'])
-                  ->default('pending');
+            $table->enum('status', ['pending', 'approved', 'rescheduled', 'declined', 'completed', 'cancelled'])
+            ->default('pending');
+
 
             // Which user approved it (nurse/admin)
             $table->foreignId('approved_by')

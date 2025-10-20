@@ -15,7 +15,7 @@ class DashboardController extends Controller
         if (!Auth::check()) {
             return redirect()->route('login');
         }
-
+        
         $user = Auth::user();
 
         // 🔑 Check role and show correct dashboard
@@ -40,10 +40,14 @@ class DashboardController extends Controller
                     ->orderBy('requested_datetime', 'asc')
                     ->get();
 
+                $students = User::where('role', 'student')->get();
+
                 return view('nurse.dashboard', [
-                    'todayAppointments' => $todayAppointments,
-                    'upcomingAppointments' => $upcomingAppointments
-                ]);
+    'todayAppointments' => $todayAppointments,
+    'upcomingAppointments' => $upcomingAppointments,
+    'students' => $students   // ✅ Add this
+]);
+
 
 
             case 'student':

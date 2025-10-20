@@ -10,12 +10,12 @@ class GuardianSmsLog extends Model
     use HasFactory;
 
     protected $fillable = [
-        'appointment_id',
-        'student_id',
         'guardian_name',
         'guardian_phone',
         'message',
-        'sent_at',
+        'sent_by',
+        'sent_by_id',
+        'sent_by_role',
     ];
 
     public function appointment() {
