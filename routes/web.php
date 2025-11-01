@@ -132,8 +132,16 @@ Route::middleware('auth')->group(function () {
     | Notifications Polling API (for all authenticated users)
     |--------------------------------------------------------------------------
     */
-    Route::get('/notifications/check', [NotificationController::class, 'check'])
-        ->name('notifications.check');
+    
+Route::get('/notifications/check', [App\Http\Controllers\NotificationController::class, 'check'])
+    ->name('notifications.check');
+
+    // 🔔 Global notification routes (accessible to all roles)
+Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+Route::post('/notifications/send', [NotificationController::class, 'sendNotification'])->name('notifications.send');
+Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+
 
     /*
     |--------------------------------------------------------------------------

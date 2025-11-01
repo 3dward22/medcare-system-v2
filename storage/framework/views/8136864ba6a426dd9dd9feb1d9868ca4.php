@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <meta name="user-id" content="<?php echo e(Auth::id()); ?>">
     <title><?php echo e(config('app.name', 'Med System')); ?></title>
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -75,6 +77,11 @@
                     <div x-show="openNotif" x-cloak
                         class="absolute right-0 mt-2 w-80 bg-white border rounded shadow-lg overflow-hidden z-50">
                         <div class="p-2 text-sm font-medium text-gray-700 bg-gray-100 border-b">Notifications</div>
+                        <div class="flex justify-between items-center px-2 py-1 border-b bg-gray-50">
+    <button id="markAllRead" class="text-xs text-blue-600 hover:underline">Mark all as read</button>
+    <button id="refreshNotif" class="text-xs text-gray-500 hover:text-gray-700">↻</button>
+</div>
+
                         <div id="notifList" class="max-h-60 overflow-y-auto">
                             <div class="p-2 text-gray-500 text-sm">No notifications</div>
                         </div>
@@ -265,7 +272,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
-    // Laravel flash messages
+    // ✅ Laravel flash messages
     window.flashMessages = {
         success: "<?php echo e(session('success')); ?>",
         error: "<?php echo e(session('error')); ?>",
@@ -277,7 +284,7 @@
     if (window.flashMessages.warning) toastr.warning(window.flashMessages.warning);
     if (window.flashMessages.info) toastr.info(window.flashMessages.info);
 
-    // 🔔 Polling fallback (every 5s)
+    // ✅ Notification polling fallback (every 5s)
     function checkNotifications() {
         axios.get("<?php echo e(route('notifications.check')); ?>")
             .then(response => {
@@ -289,59 +296,106 @@
                     badge.innerText = data.count;
                     badge.classList.remove('hidden');
 
-                    notifList.innerHTML = ''; // clear old list
+                    notifList.innerHTML = ''; // Clear previous notifications
                     data.notifications.forEach(n => {
                         const notifItem = document.createElement('div');
-                        notifItem.className = 'p-2 text-sm text-gray-700 border-b hover:bg-gray-100 cursor-pointer';
+                        notifItem.className =
+                            'p-2 text-sm text-gray-700 border-b hover:bg-gray-100 cursor-pointer';
                         notifItem.innerText = n.message;
                         notifList.prepend(notifItem);
                     });
                 } else {
                     badge.classList.add('hidden');
-                    notifList.innerHTML = `<div class="p-2 text-gray-500 text-sm">No notifications</div>`;
+                    notifList.innerHTML =
+                        `<div class="p-2 text-gray-500 text-sm">No notifications</div>`;
                 }
             })
             .catch(err => console.error("Polling error:", err));
     }
+
+    // ✅ Auto-refresh every 5 seconds
     setInterval(checkNotifications, 5000);
     checkNotifications();
 
-    // 🔔 Echo listener (if enabled)
+    // ✅ Mark All as Read + Manual Refresh Buttons
+    document.addEventListener('DOMContentLoaded', () => {
+        const markAllReadBtn = document.getElementById('markAllRead');
+        const refreshNotifBtn = document.getElementById('refreshNotif');
+
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', () => {
+                axios.post("<?php echo e(route('notifications.readAll')); ?>")
+                    .then(() => {
+                        toastr.info('All notifications marked as read');
+                        document.getElementById('notifBadge').classList.add('hidden');
+                        document.getElementById('notifList').innerHTML =
+                            `<div class='p-2 text-gray-500 text-sm'>No notifications</div>`;
+                    })
+                    .catch(err => console.error("Mark all read error:", err));
+            });
+        }
+
+        if (refreshNotifBtn) {
+            refreshNotifBtn.addEventListener('click', checkNotifications);
+        }
+    });
+
+    // ✅ Real-time notification listener (via Pusher/Echo)
     if (window.Echo) {
-        window.Echo.channel('notifications')
-            .listen('NewNotification', (e) => {
+        const userId = document.querySelector('meta[name="user-id"]').content;
+
+        window.Echo.channel(`user.${userId}`)
+            .listen('.new-notification', (e) => {
                 const message = e.message;
 
-                // Toast popup
+                // 🔔 Toast popup
                 const toastContainer = document.getElementById('toastContainer');
                 const toastHTML = `
                     <div class="toast align-items-center text-bg-info border-0 mb-2" role="alert">
                         <div class="d-flex">
                             <div class="toast-body">${message}</div>
-                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast"></button>
                         </div>
                     </div>`;
                 toastContainer.insertAdjacentHTML('beforeend', toastHTML);
                 new bootstrap.Toast(toastContainer.lastElementChild).show();
 
-                // Bell dropdown
+                // 🔁 Add to dropdown dynamically
                 const notifList = document.getElementById('notifList');
                 const placeholder = notifList.querySelector('.text-gray-500');
                 if (placeholder) placeholder.remove();
 
                 const notifItem = document.createElement('div');
-                notifItem.className = 'p-2 text-sm text-gray-700 border-b hover:bg-gray-100 cursor-pointer';
+                notifItem.className =
+                    'p-2 text-sm text-gray-700 border-b hover:bg-gray-100 cursor-pointer';
                 notifItem.innerText = message;
                 notifList.prepend(notifItem);
 
-                // Update badge count
+                // 🔴 Update badge count
                 const badge = document.getElementById('notifBadge');
                 let count = parseInt(badge.innerText || "0");
                 badge.innerText = count + 1;
                 badge.classList.remove('hidden');
             });
     }
+
+    // ✅ Optional: Auto-mark as read when opening dropdown
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('notifDropdown', () => ({
+            openNotif: false,
+            toggle() {
+                this.openNotif = !this.openNotif;
+                if (this.openNotif) {
+                    axios.post('<?php echo e(route('notifications.readAll')); ?>').then(() => {
+                        document.getElementById('notifBadge').classList.add('hidden');
+                    });
+                }
+            }
+        }));
+    });
 </script>
+
 
 
 
